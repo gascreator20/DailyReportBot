@@ -13,6 +13,7 @@ function onOpen()
 {
     const ui = SpreadsheetApp.getUi();
     ui.createMenu("日報報告機能")
+        .addItem("本日分の日報を用意", "createTodayTemplate")
         .addItem("次回分の日報を用意", "createNextDayTemplate")
         .addItem("作業予定記入チェック（当日分を確認）", "requestTodayPlanError")
         .addItem("作業報告記入依頼", "requestReportWrite")
@@ -94,25 +95,30 @@ function requestReportWrite()
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
     
-    // 予定が正確に入力されているかどうかの検証
+    // ひとつまえの時間帯で勤務中の人が対象
     const worker = new Worker();
     const members = worker.getWorkMember();
-    
     for (const member of members) {
         const spreadSheetReader = new DailyReportSheetReader();
         const resultBeforeTime = spreadSheetReader.findWorkResultByBeforeTime(member, calendar);
+        if (resultBeforeTime === null) {
+            continue;
+        }
+        
         const planBeforeTime = resultBeforeTime[3];
         
-        // 報告が未記入の場合はエラー
+        // 作業予定が入っている人（勤務中）の人にのみ送信
         if (planBeforeTime !== "") {
             reportWriteMembers.push(member);
         }
     }
     
     // 報告
-    const chatWork = new SendMessage();
     if (reportWriteMembers.length >= 1) {
+        const chatWork = new SendMessage();
         chatWork.sendRequestDailyTimeReport(reportWriteMembers);
+    } else {
+        console.log("対象者はいませんでした")
     }
 }
 
@@ -191,7 +197,7 @@ function setReportTrigger()
         ScriptApp.newTrigger('requestReportWrite').timeBased().at(triggerDate).create();
         
         // 作業報告トリガー
-        triggerDate.setMinutes(Number(minute) + reportTime);
+        triggerDate.setMinutes(Number(minute) + Number(reportTime));
         ScriptApp.newTrigger('reportCheck').timeBased().at(triggerDate).create();
     }
 }
@@ -282,6 +288,29 @@ function deleteTrigger()
     for (const trigger of triggers) {
         ScriptApp.deleteTrigger(trigger);
     }
+}
+
+/**
+ * テンプレートシートを用意する
+ */
+function createTodayTemplate()
+{
+    if (!isWorkDayToday_()) {
+        return;
+    }
+    
+    // 次の営業日を取得
+    const config = new Config();
+    const keyValueSheetReader = new KeyValueSheet();
+    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false);
+    
+    // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
+    const spreadSheetCreator = new SpreadSheetCreator();
+    const spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetTemplate = spreadSheet.getSheetByName("テンプレート");
+    
+    spreadSheetCreator.copy(config.driveDirectoryId, sheetTemplate, calendar[config.calendarSheetKey]);
 }
 
 /**
@@ -385,16 +414,20 @@ function planError_(isNextDay: boolean)
         
         if (plan === null) {
             console.log("参照できませんでした:" + member["名前"])
-            errorMember.push(member["名前"]);
+            errorMember.push(member);
         } else if (plan === "") {
             console.log("予定が空白です:" + member["名前"])
-            errorMember.push(member["名前"]);
+            errorMember.push(member);
         }
     }
     
     // 報告
-    const chatWork = new SendMessage();
-    chatWork.sendRequestNextDayPlanError(errorMember, isNextDay);
+    if (errorMember.length >= 1) {
+        const chatWork = new SendMessage();
+        chatWork.sendRequestNextDayPlanError(errorMember, isNextDay);
+    } else {
+        console.log("対象者はいませんでした")
+    }
 }
 
 /**
@@ -425,8 +458,15 @@ function report_(needSuccessReport: boolean = true)
         // 勤務時間外の場合はnullが返る。nullの場合は何も処理していないので必然的に作業報告者対象から除外される
         const spreadSheetReader = new DailyReportSheetReader();
         const resultBeforeTime = spreadSheetReader.findWorkResultByBeforeTime(member, calendar);
+        if (resultBeforeTime === null) {
+            continue;
+        }
+        
         const resultReportBeforeTime = resultBeforeTime[5];
         const resultNowTime = spreadSheetReader.findWorkResultByNowTime(member, calendar);
+        if (resultNowTime === null) {
+            continue;
+        }
         const resultReportNowTime = resultNowTime[5];
         
         if (resultReportBeforeTime === "") {
@@ -437,7 +477,7 @@ function report_(needSuccessReport: boolean = true)
             // 報告の先記入は禁止
             ngRuleMember.push(member);
             error = true;
-        } else if (resultReportBeforeTime !== "" && needSuccessReport) {
+        } else if (resultReportBeforeTime !== "") {
             // 報告が正しい
             successMember.push(member);
         }
@@ -446,13 +486,13 @@ function report_(needSuccessReport: boolean = true)
     // 報告（対象者がいるもののみ送信する）
     const chatWork = new SendMessage();
     if (ngRuleMember.length >= 1) {
-        chatWork.sendDailyTimeReportNgRule(errorMember);
+        chatWork.sendDailyTimeReportNgRule(ngRuleMember);
     }
     if (errorMember.length >= 1) {
         chatWork.sendDailyTimeReportError(errorMember);
     }
     if (successMember.length >= 1 && needSuccessReport) {
-        chatWork.sendDailyTimeReport(errorMember);
+        chatWork.sendDailyTimeReport(successMember);
     }
     
     // 再通知トリガー（エラー通知のループを避けるために成功時の報告の時でしか再通知トリガーはセットしない）
