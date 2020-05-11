@@ -346,9 +346,9 @@ export default class SendMessage
         let message = "";
         
         if (withToChat) {
-            message += member["ChatWorkID"] + "\n" + this.getSheetURL(member, isNextDay) + "\n";
+            message += member["ChatWorkID"] + "\n" + this.getSheetURL(member, isNextDay) + "\n\n";
         } else {
-            message += member["名前"] + "\n" + this.getSheetURL(member, isNextDay) + "\n";
+            message += member["名前"] + "\n" + this.getSheetURL(member, isNextDay) + "\n\n";
         }
         
         return message;
