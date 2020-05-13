@@ -43,7 +43,7 @@ function targetCellReport()
     const keyValueSheetReader = new KeyValueSheet();
     const worker = new Worker();
     const members = worker.getWorkMember();
-    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false);
     const chatWork = new SendMessage();
     
@@ -92,7 +92,7 @@ function requestReportWrite()
     // 営業日を取得
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
-    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
     
     // ひとつまえの時間帯で勤務中の人が対象
@@ -105,7 +105,7 @@ function requestReportWrite()
             continue;
         }
         
-        const planBeforeTime = resultBeforeTime[3];
+        const planBeforeTime = resultBeforeTime[config.planColumnNumber - 1];
         
         // 作業予定が入っている人（勤務中）の人にのみ送信
         if (planBeforeTime !== "") {
@@ -302,7 +302,7 @@ function createTodayTemplate()
     // 次の営業日を取得
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
-    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false);
     
     // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
@@ -325,7 +325,7 @@ function createNextDayTemplate()
     // 次の営業日を取得
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
-    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, true);
     
     // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
@@ -401,7 +401,7 @@ function planError_(isNextDay: boolean)
     const keyValueSheetReader = new KeyValueSheet();
     
     // 次の営業日を取得
-    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay);
     
     // 予定が正確に入力されているかどうかの検証
@@ -409,8 +409,8 @@ function planError_(isNextDay: boolean)
     const members = worker.getWorkMember(isNextDay);
     for (const member of members) {
         const spreadSheetReader = new DailyReportSheetReader();
-        const result = spreadSheetReader.findDailyReportByWorkStartTime(member, calendar);
-        const plan = result[3];
+        const dailyReportRow = spreadSheetReader.findDailyReportByWorkStartTime(member, calendar);
+        const plan = dailyReportRow[config.planColumnNumber - 1];
         
         if (plan === null) {
             console.log("参照できませんでした:" + member["名前"])
@@ -447,7 +447,7 @@ function report_(needSuccessReport: boolean = true)
     // 営業日を取得
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
-    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
     
     // 予定が正確に入力されているかどうかの検証
@@ -462,12 +462,12 @@ function report_(needSuccessReport: boolean = true)
             continue;
         }
         
-        const resultReportBeforeTime = resultBeforeTime[5];
+        const resultReportBeforeTime = resultBeforeTime[config.workResultColumnNumber - 1];
         const resultNowTime = spreadSheetReader.findWorkResultByNowTime(member, calendar);
         if (resultNowTime === null) {
             continue;
         }
-        const resultReportNowTime = resultNowTime[5];
+        const resultReportNowTime = resultNowTime[config.workResultColumnNumber - 1];
         
         if (resultReportBeforeTime === "") {
             // 報告が未記入の場合はエラー
@@ -514,7 +514,7 @@ function isWorkDayToday_()
     // 設定値の取得
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
-    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
     
     if (!calendar) {

@@ -32,6 +32,13 @@ export default class Config
     private readonly _checkNextPlanTime;
     private readonly _requestNextPlanTime;
     private readonly _reportCellTime;
+    private readonly _calendarType;
+    private readonly _templateWide;
+    private readonly _startDateTimeColumnNumber;
+    private readonly _endDateTimeColumnNumber;
+    private readonly _planColumnNumber;
+    private readonly _workResultColumnNumber;
+    private readonly _emoji;
     
     constructor()
     {
@@ -40,17 +47,26 @@ export default class Config
         this._driveDirectoryId = keyValueSheetReader.find("設定", "キー名", "ディレクトリのID")["値"];
         this._calendarSheetKey = keyValueSheetReader.find("設定", "キー名", "カレンダーシートのキー名")["値"];
         this._prefix = keyValueSheetReader.find("設定", "キー名", "スプレッドシートのファイル名の接頭語")["値"];
-        this._startRow = keyValueSheetReader.find("設定", "キー名", "日報の時刻開始行番号")["値"];
-        this._rangeRow = keyValueSheetReader.find("設定", "キー名", "日報の時刻表示行数")["値"];
-        this._apiToken = keyValueSheetReader.find("設定", "キー名", "ApiToken")["値"];
         this._isReportRetryTime = keyValueSheetReader.find("設定", "キー名", "エラーの再検知を行うかどうか")["値"];
         this._reportSortKey = keyValueSheetReader.find("設定", "キー名", "報告のソートに使用するキー")["値"];
+
+        // 日報シート関連
+        this._calendarType = keyValueSheetReader.find("設定", "キー名", "カレンダー形式（日報シート名）")["値"];
+        this._templateWide = keyValueSheetReader.find("設定", "キー名", "日報テンプレートの横幅")["値"];
+        this._startDateTimeColumnNumber = keyValueSheetReader.find("設定", "キー名", "日報テンプレートの開始時間帯の列番")["値"];
+        this._endDateTimeColumnNumber = keyValueSheetReader.find("設定", "キー名", "日報テンプレートの終了時間帯の列番")["値"];
+        this._planColumnNumber = keyValueSheetReader.find("設定", "キー名", "日報テンプレートの作業予定記入の列番")["値"];
+        this._workResultColumnNumber = keyValueSheetReader.find("設定", "キー名", "日報テンプレートの作業内容記入の列番")["値"];
+        this._startRow = keyValueSheetReader.find("設定", "キー名", "日報の時刻開始行番号")["値"];
+        this._rangeRow = keyValueSheetReader.find("設定", "キー名", "日報の時刻表示行数")["値"];
         
         // ルーム関連
+        this._apiToken = keyValueSheetReader.find("設定", "キー名", "ApiToken")["値"];
         this._testRoomId = keyValueSheetReader.find("設定", "キー名", "テスト用ルームID")["値"];
         this._workerRoomId = keyValueSheetReader.find("設定", "キー名", "作業者ルームID")["値"];
         this._endOfWorkReportRoomId = keyValueSheetReader.find("設定", "キー名", "終業報告場所のルームID")["値"];
-        this._isTest = keyValueSheetReader.find("設定", "キー名", "isTest")["値"];
+        this._isTest = keyValueSheetReader.find("設定", "キー名", "テストモードかどうか")["値"];
+        this._emoji = keyValueSheetReader.find("設定", "キー名", "報告時に付く英文字")["値"];
         
         // 指定セルの報告用
         this._roomIdByCellReport = keyValueSheetReader.find("設定", "キー名", "指定セル報告の報告場所ルームID")["値"];
@@ -68,6 +84,41 @@ export default class Config
         this._checkNextPlanTime = keyValueSheetReader.find("設定", "キー名", "次回分の作業予定の記入が正しいかチェックする時間")["値"];
         this._requestNextPlanTime = keyValueSheetReader.find("設定", "キー名", "次回分の作業予定記入依頼の時間")["値"];
         this._reportCellTime = keyValueSheetReader.find("設定", "キー名", "指定セル報告を行う時間")["値"];
+    }
+    
+    public get calendarType()
+    {
+        return this._calendarType;
+    }
+    
+    public get templateWide()
+    {
+        return this._templateWide;
+    }
+    
+    public get startDateTimeColumnNumber()
+    {
+        return this._startDateTimeColumnNumber;
+    }
+    
+    public get endDateTimeColumnNumber()
+    {
+        return this._endDateTimeColumnNumber;
+    }
+    
+    public get planColumnNumber()
+    {
+        return this._planColumnNumber;
+    }
+    
+    public get workResultColumnNumber()
+    {
+        return this._workResultColumnNumber;
+    }
+    
+    public get emoji()
+    {
+        return this._emoji;
     }
     
     public get templateCreateTime()
