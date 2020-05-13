@@ -21,7 +21,7 @@ export default class Worker
         const config = new Config()
         
         // 営業日を取得
-        const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+        const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
         const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay);
         
         // 対象外となるメンバーを除外する
