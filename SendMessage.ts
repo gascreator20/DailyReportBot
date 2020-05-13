@@ -213,7 +213,8 @@ export default class SendMessage
     {
         // 設定値の取得
         const keyValueSheetReader = new KeyValueSheet();
-        const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd");
+        const config = new Config();
+        const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
         const calendar = keyValueSheetReader.find("カレンダー", this._config.calendarSheetKey, nowTime, isNextDay);
         const sheetByMember = SpreadsheetApp.openById(member["SpreadsheetID"]).getSheetByName(calendar[this._config.calendarSheetKey]);
         
@@ -309,7 +310,7 @@ export default class SendMessage
                 for (const member of membersGroup[key]) {
                     // グループ名を最初に記載する
                     if (loopKeyName !== key) {
-                        message += "(lightbulb)" + key + "(lightbulb)\n";
+                        message += this._config.emoji() + key + this._config.emoji() + "\n";
                         loopKeyName = key;
                     }
                     
