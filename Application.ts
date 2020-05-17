@@ -86,7 +86,7 @@ function requestReportWrite()
         return;
     }
     
-    // 作業報告が必要なメンバーリスト
+    // 作業報告が必要なメンバー
     const reportWriteMembers = [];
     
     // 営業日を取得
@@ -307,8 +307,7 @@ function createTodayTemplate()
     
     // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
     const spreadSheetCreator = new SpreadSheetCreator();
-    const spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    const sheetTemplate = spreadSheet.getSheetByName("テンプレート");
+    const sheetTemplate = SpreadsheetApp.openById(config.spreadsheetIdManagement).getSheetByName('テンプレート');
     
     spreadSheetCreator.copy(config.driveDirectoryId, sheetTemplate, calendar[config.calendarSheetKey]);
 }
@@ -330,8 +329,7 @@ function createNextDayTemplate()
     
     // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
     const spreadSheetCreator = new SpreadSheetCreator();
-    const spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    const sheetTemplate = spreadSheet.getSheetByName("テンプレート");
+    const sheetTemplate = SpreadsheetApp.openById(config.spreadsheetIdManagement).getSheetByName("テンプレート");
     
     spreadSheetCreator.copy(config.driveDirectoryId, sheetTemplate, calendar[config.calendarSheetKey]);
 }
@@ -343,9 +341,10 @@ function readSpreadsheetId()
 {
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
-    const memberNames = keyValueSheetReader.getAllByColumnName("メンバーリスト", "名前");
-    const spreadsheetIdColumnNumber = keyValueSheetReader.getColumnNumber("メンバーリスト", "SpreadsheetID");
-    const sheetUrlColumnNumber = keyValueSheetReader.getColumnNumber("メンバーリスト", "SheetURL");
+    const memberNames = keyValueSheetReader.getAllByColumnName("メンバーリスト", "名前", config.spreadsheetIdMember);
+    const spreadsheetIdColumnNumber = keyValueSheetReader.getColumnNumber("メンバー管理", "SpreadsheetID");
+    const sheetUrlColumnNumber = keyValueSheetReader.getColumnNumber("メンバー管理", "SheetURL");
+    const nameColumnNumber = keyValueSheetReader.getColumnNumber("メンバー管理", "名前");
     
     // ドライブ内のファイルID、URLを取得する
     const googleDrive = new GoogleDrive();
@@ -354,8 +353,9 @@ function readSpreadsheetId()
         const sheetId = googleDrive.getFileId(config.driveDirectoryId, config.prefix + name);
         const sheetUrl = googleDrive.getSheetURL(config.driveDirectoryId, config.prefix + name);
         
-        keyValueSheetReader.write("メンバーリスト", loopCount, spreadsheetIdColumnNumber, sheetId);
-        keyValueSheetReader.write("メンバーリスト", loopCount, sheetUrlColumnNumber, sheetUrl);
+        keyValueSheetReader.write("メンバー管理", loopCount, nameColumnNumber, name);
+        keyValueSheetReader.write("メンバー管理", loopCount, spreadsheetIdColumnNumber, sheetId);
+        keyValueSheetReader.write("メンバー管理", loopCount, sheetUrlColumnNumber, sheetUrl);
         loopCount++;
     }
 }
@@ -455,20 +455,20 @@ function report_(needSuccessReport: boolean = true)
     const members = worker.getWorkMember();
     
     for (const member of members) {
-        // 勤務時間外の場合はnullが返る。nullの場合は何も処理していないので必然的に作業報告者対象から除外される
+        // 勤務時間外の場合はnullが返る。nullの場合は何も作業していないので作業報告者対象から除外する
         const spreadSheetReader = new DailyReportSheetReader();
         const resultBeforeTime = spreadSheetReader.findWorkResultByBeforeTime(member, calendar);
         if (resultBeforeTime === null) {
             continue;
         }
-        
-        const resultReportBeforeTime = resultBeforeTime[config.workResultColumnNumber - 1];
-        const resultNowTime = spreadSheetReader.findWorkResultByNowTime(member, calendar);
-        if (resultNowTime === null) {
+        const reportNowTime = spreadSheetReader.findWorkResultByNowTime(member, calendar);
+        if (reportNowTime === null) {
             continue;
         }
-        const resultReportNowTime = resultNowTime[config.workResultColumnNumber - 1];
-        
+
+        // 設定値で入力されている番号と配列の番号には1つ分ずれがある（配列は0始まり）ための考慮
+        const resultReportNowTime = reportNowTime[config.workResultColumnNumber - 1];
+        const resultReportBeforeTime = resultBeforeTime[config.workResultColumnNumber - 1];
         if (resultReportBeforeTime === "") {
             // 報告が未記入の場合はエラー
             errorMember.push(member);

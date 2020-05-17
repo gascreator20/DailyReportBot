@@ -1,4 +1,5 @@
 import Common from "./Common";
+import Config from "./Config";
 
 /**
  * 縦横の基本的なスプレッドシートの情報を取得するクラス
@@ -34,10 +35,16 @@ export default class KeyValueSheet
      * シートデータを読み込む
      *
      * @param {string} sheetName
+     * @param {string} spreadsheetId
      */
-    private static createLocalCache(sheetName: string)
+    private static createLocalCache(sheetName: string, spreadsheetId: string = null)
     {
-        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+        let sheet;
+        if (spreadsheetId === null) {
+            sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+        } else {
+            sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(sheetName);
+        }
         
         // 該当シートの縦横すべてを取得
         KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName] = Common.convertSheet(sheet.getSheetValues(1, 1, sheet.getLastRow(), sheet.getLastColumn()));
@@ -73,13 +80,14 @@ export default class KeyValueSheet
      * @param {string} columnName
      * @param {string} targetName
      * @param {boolean} isNextRow
+     * @param {boolean} spreadsheetId
      * @returns {string[]}
      */
-    public find(sheetName: string, columnName: string, targetName: string, isNextRow: boolean = false): string[]
+    public find(sheetName: string, columnName: string, targetName: string, isNextRow: boolean = false, spreadsheetId: string = null): string[]
     {
         // 既にキャッシュ済みの場合は作らない（一度読み込んだものはキャッシュしておく）
         if (!KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName]) {
-            KeyValueSheet.createLocalCache(sheetName);
+            KeyValueSheet.createLocalCache(sheetName, spreadsheetId);
         }
         
         for (let i = 0; i < KeyValueSheet.rowcountCacheBySheetName[sheetName]; i++) {
@@ -130,13 +138,14 @@ export default class KeyValueSheet
      * 該当シートの全情報を取得する（1行目は配列のキーとなる）
      *
      * @param {string} sheetName
+     * @param {string} spreadsheetId
      * @returns {string[][]}
      */
-    public getAll(sheetName: string): string[][]
+    public getAll(sheetName: string, spreadsheetId: string): string[][]
     {
         // 既に作成済みの場合は作らない（一度読み込んだものはキャッシュしておく）
         if (!KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName]) {
-            KeyValueSheet.createLocalCache(sheetName);
+            KeyValueSheet.createLocalCache(sheetName, spreadsheetId);
         }
         
         return KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName];
@@ -147,13 +156,14 @@ export default class KeyValueSheet
      *
      * @param {string} sheetName
      * @param {string} columnName
+     * @param {string} spreadsheetId
      * @returns {string[]}
      */
-    public getAllByColumnName(sheetName: string, columnName: string): string[]
+    public getAllByColumnName(sheetName: string, columnName: string, spreadsheetId: string): string[]
     {
         // 既に作成済みの場合は作らない（一度読み込んだものはキャッシュしておく）
         if (!KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName]) {
-            KeyValueSheet.createLocalCache(sheetName);
+            KeyValueSheet.createLocalCache(sheetName, spreadsheetId);
         }
         
         const results = [];
@@ -233,7 +243,8 @@ export default class KeyValueSheet
      */
     public write(sheetName: string, rowNumber: number, columnNumber: number, message: string)
     {
-        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+        const config = new Config();
+        const sheet = SpreadsheetApp.openById(config.spreadsheetIdManagement).getSheetByName(sheetName);
         
         sheet.getRange(rowNumber, columnNumber).setValue(message);
     }

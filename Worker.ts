@@ -25,8 +25,15 @@ export default class Worker
         const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay);
         
         // 対象外となるメンバーを除外する
-        const rowsMemberList = keyValueSheetReader.getAll("メンバーリスト");
+        const rowsMemberList = keyValueSheetReader.getAll("メンバーリスト", config.spreadsheetIdMember);
         for (const rowsMember of rowsMemberList) {
+            const rowsMemberManagement = keyValueSheetReader.find("メンバー管理", "名前", rowsMember["名前"], false, config.spreadsheetIdManagement);
+            
+            if (rowsMemberManagement === null) {
+                console.log(rowsMember["名前"] + "の情報を管理メンバーシートで参照できませんでした");
+                continue;
+            }
+            
             if (calendar[rowsMember["名前"]] === "休み" || calendar[rowsMember["名前"]] === "") {
                 console.log(rowsMember["名前"] + "はお休みです");
                 continue;
@@ -39,6 +46,14 @@ export default class Worker
                 console.log(rowsMember["名前"] + "のSheetURLを取得できませんでした");
                 continue;
             }
+            if (rowsMember["通知対象"] !== "TRUE" && rowsMember["通知対象"] !== true) {
+                console.log(rowsMember["名前"] + "は通知対象外です");
+                continue;
+            }
+            
+            rowsMember["SpreadsheetID"] = rowsMemberManagement["SpreadsheetID"];
+            rowsMember["SheetURL"] = rowsMemberManagement["SheetURL"];
+            rowsMember["記入数"] = rowsMemberManagement["記入数"];
             
             result.push(rowsMember);
         }

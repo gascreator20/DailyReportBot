@@ -39,11 +39,15 @@ export default class Config
     private readonly _planColumnNumber;
     private readonly _workResultColumnNumber;
     private readonly _emoji;
+    private readonly _spreadsheetIdManagement;
+    private readonly _spreadsheetIdMember;
     
     constructor()
     {
         // 設定値の取得
         const keyValueSheetReader = new KeyValueSheet();
+        this._spreadsheetIdManagement = keyValueSheetReader.find("設定", "キー名", "管理スプレッドシートID")["値"];
+        this._spreadsheetIdMember = keyValueSheetReader.find("設定", "キー名", "メンバーリスト用スプレッドシートID")["値"];
         this._driveDirectoryId = keyValueSheetReader.find("設定", "キー名", "ディレクトリのID")["値"];
         this._calendarSheetKey = keyValueSheetReader.find("設定", "キー名", "カレンダーシートのキー名")["値"];
         this._prefix = keyValueSheetReader.find("設定", "キー名", "スプレッドシートのファイル名の接頭語")["値"];
@@ -84,6 +88,16 @@ export default class Config
         this._checkNextPlanTime = keyValueSheetReader.find("設定", "キー名", "次回分の作業予定の記入が正しいかチェックする時間")["値"];
         this._requestNextPlanTime = keyValueSheetReader.find("設定", "キー名", "次回分の作業予定記入依頼の時間")["値"];
         this._reportCellTime = keyValueSheetReader.find("設定", "キー名", "指定セル報告を行う時間")["値"];
+    }
+    
+    public get spreadsheetIdManagement()
+    {
+        return this._spreadsheetIdManagement;
+    }
+    
+    public get spreadsheetIdMember()
+    {
+        return this._spreadsheetIdMember;
     }
     
     public get calendarType()

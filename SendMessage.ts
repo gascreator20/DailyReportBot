@@ -29,20 +29,20 @@ export default class SendMessage
     {
         const config = new Config();
         const sheet = new KeyValueSheet();
-        const columnNumber: number = sheet.getColumnNumber("メンバーリスト", "記入数");
-        const rowNumber: number = sheet.getRowNumber("メンバーリスト", member["名前"], "名前");
+        const columnNumber: number = sheet.getColumnNumber("メンバー管理", "記入数");
+        const rowNumber: number = sheet.getRowNumber("メンバー管理", member["名前"], "名前");
         
         if (config.countTypeByCellReport === "累計カウント") {
             if (!isEmptyMessage) {
-                sheet.write("メンバーリスト", rowNumber, columnNumber, String(Number(member["記入数"]) + 1));
+                sheet.write("メンバー管理", rowNumber, columnNumber, String(Number(member["記入数"]) + 1));
             }
         }
         
         if (config.countTypeByCellReport === "リセットカウント") {
             if (isEmptyMessage) {
-                sheet.write("メンバーリスト", rowNumber, columnNumber, "0");
+                sheet.write("メンバー管理", rowNumber, columnNumber, "0");
             } else {
-                sheet.write("メンバーリスト", rowNumber, columnNumber, String(Number(member["記入数"]) + 1));
+                sheet.write("メンバー管理", rowNumber, columnNumber, String(Number(member["記入数"]) + 1));
             }
         }
     }
@@ -178,7 +178,7 @@ export default class SendMessage
                 for (const member of membersGroup[key]) {
                     // グループ名を最初に記載する
                     if (loopKeyName !== key) {
-                        message += "(lightbulb)" + key + "(lightbulb)\n";
+                        message += this._config.emoji + key + this._config.emoji + "\n";
                         loopKeyName = key;
                     }
                     
@@ -310,7 +310,7 @@ export default class SendMessage
                 for (const member of membersGroup[key]) {
                     // グループ名を最初に記載する
                     if (loopKeyName !== key) {
-                        message += this._config.emoji() + key + this._config.emoji() + "\n";
+                        message += this._config.emoji + key + this._config.emoji + "\n";
                         loopKeyName = key;
                     }
                     
