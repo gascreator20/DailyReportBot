@@ -43,7 +43,7 @@ export default class ChatWork
         const config = new Config();
         
         // テスト時は必ずテストルームへ送信する
-        if (config.isTest) {
+        if (config.isTest === "TRUE" || config.isTest === "true") {
             ChatWork.sendMessageToChatWork(message, config.testRoomId, config.apiToken);
         } else {
             ChatWork.sendMessageToChatWork(message, roomId, config.apiToken);
