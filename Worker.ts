@@ -1,4 +1,5 @@
 import Config from "./Config";
+import DailyReportSheetReader from "./DailyReportSheetReader";
 import KeyValueSheet from "./KeyValueSheet";
 
 /**
@@ -6,6 +7,34 @@ import KeyValueSheet from "./KeyValueSheet";
  */
 export default class Worker
 {
+    /**
+     * 現時刻の作業メンバーの情報を取得する
+     *
+     * @return {string[][]}
+     */
+    public getWorkMemberNowTime(): string[][]
+    {
+        const config = new Config();
+        const keyValueSheetReader = new KeyValueSheet();
+        const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
+        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
+        const members = this.getWorkMember();
+        const joinMembers = [];
+    
+        for (const member of members) {
+            // 勤務時間外の場合はnullが返る。nullの場合は何も作業していないので作業報告者対象から除外する
+            const spreadSheetReader = new DailyReportSheetReader();
+            const reportNowTime = spreadSheetReader.findWorkResultByNowTime(member, calendar);
+            if (reportNowTime === null) {
+                continue;
+            }
+        
+            joinMembers.push(member);
+        }
+    
+        return joinMembers;
+    }
+    
     /**
      * 作業メンバーの情報を取得する
      *

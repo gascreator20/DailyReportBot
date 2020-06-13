@@ -16,6 +16,7 @@ function onOpen()
         .addItem("本日分の日報を用意", "createTodayTemplate")
         .addItem("次回分の日報を用意", "createNextDayTemplate")
         .addItem("作業予定記入チェック（当日分を確認）", "requestTodayPlanError")
+        .addItem("朝会の実行", "morningStart")
         .addItem("作業報告記入依頼", "requestReportWrite")
         .addItem("作業報告", "reportCheck")
         .addItem("作業報告違反のチェック", "reportErrorCheckOnly")
@@ -28,6 +29,7 @@ function onOpen()
         .addItem("実行トリガーをすべて削除", "deleteTrigger")
         .addItem("必須以外の実行トリガーを削除", "deleteTriggerWithoutRequired")
         .addItem("スプレッドシートIDの読み込み", "readSpreadsheetId")
+        .addItem("自由発言の実行", "freedomWording")
         .addToUi();
 }
 
@@ -78,6 +80,40 @@ function endOfWorkReport()
 }
 
 /**
+ * 朝会実行
+ */
+function morningStart()
+{
+    if (!isWorkDayToday_()) {
+        return;
+    }
+    
+    const worker = new Worker();
+    const joinMembers = worker.getWorkMemberNowTime();
+    
+    // 報告
+    const chatWork = new SendMessage();
+    chatWork.sendMorning(joinMembers);
+}
+
+/**
+ * 自由ワード
+ */
+function freedomWording()
+{
+    if (!isWorkDayToday_()) {
+        return;
+    }
+    
+    const worker = new Worker();
+    const joinMembers = worker.getWorkMemberNowTime();
+    
+    // 報告
+    const chatWork = new SendMessage();
+    chatWork.freedomWording(joinMembers);
+}
+
+/**
  * 作業報告記入依頼
  */
 function requestReportWrite()
@@ -105,12 +141,7 @@ function requestReportWrite()
             continue;
         }
         
-        const planBeforeTime = resultBeforeTime[config.planColumnNumber - 1];
-        
-        // 作業予定が入っている人（勤務中）の人にのみ送信
-        if (planBeforeTime !== "") {
-            reportWriteMembers.push(member);
-        }
+        reportWriteMembers.push(member);
     }
     
     // 報告
@@ -181,6 +212,8 @@ function setReportTrigger()
     const reportTime = config.reportTime;
     const timesArray = timesString.split(',');
     const nowTime = new Date();
+    const sleepTime: number = 1000;
+    let setTriggerCount: number = 0;
     
     for (const time of timesArray) {
         const [hour, minute] = time.split(':');
@@ -188,17 +221,26 @@ function setReportTrigger()
         triggerDate.setHours(Number(hour));
         triggerDate.setMinutes(Number(minute));
         
+        // トリガー数には上限があるため、直近の2つしかトリガーはセットしないようにする
+        if (setTriggerCount >= 2) {
+            break;
+        }
+        
         // トリガーセットする日時が現在時刻よりも前の場合は正しく時間がセットされないため、トリガーはセットしないものとする
         if (triggerDate < nowTime) {
             continue;
         }
         
         // 作業報告記入依頼トリガー
+        Utilities.sleep(sleepTime);
         ScriptApp.newTrigger('requestReportWrite').timeBased().at(triggerDate).create();
         
         // 作業報告トリガー
+        Utilities.sleep(sleepTime);
         triggerDate.setMinutes(Number(minute) + Number(reportTime));
         ScriptApp.newTrigger('reportCheck').timeBased().at(triggerDate).create();
+        
+        setTriggerCount++;
     }
 }
 
@@ -207,51 +249,74 @@ function setReportTrigger()
  */
 function initializationTrigger()
 {
+    const sleepTime: number = 1000;
     const config = new Config();
     
     // まず最初にすべてのトリガーを削除
     deleteTrigger();
+    Utilities.sleep(sleepTime);
     
     // 毎日トリガーの初期化処理を行う（自分自身を再セットする）
     ScriptApp.newTrigger('initializationTrigger').timeBased().atHour(0).everyDays(1).create();
     
     // 本日の報告トリガーをセット
     setReportTrigger();
+    Utilities.sleep(sleepTime);
     
     // 終業報告
     const triggerTimeByEndOfWorkReportTime = getTriggerSetTime_(config.endOfWorkReportTime);
     if (triggerTimeByEndOfWorkReportTime) {
         ScriptApp.newTrigger('endOfWorkReport').timeBased().at(triggerTimeByEndOfWorkReportTime).create();
+        Utilities.sleep(sleepTime);
     }
     
     // 日報自動生成
     const triggerTimeByTemplateCreateTime = getTriggerSetTime_(config.templateCreateTime);
     if (triggerTimeByTemplateCreateTime) {
         ScriptApp.newTrigger('createNextDayTemplate').timeBased().at(triggerTimeByTemplateCreateTime).create();
+        Utilities.sleep(sleepTime);
     }
     
     // 当日分の作業予定の検証
     const triggerTimeByCheckTodayPlanTime = getTriggerSetTime_(config.checkTodayPlanTime);
     if (triggerTimeByCheckTodayPlanTime) {
         ScriptApp.newTrigger('requestTodayPlanError').timeBased().at(triggerTimeByCheckTodayPlanTime).create();
+        Utilities.sleep(sleepTime);
     }
     
     // 次回分の作業予定の検証
     const triggerTimeByCheckNextPlanTime = getTriggerSetTime_(config.checkNextPlanTime);
     if (triggerTimeByCheckNextPlanTime) {
         ScriptApp.newTrigger('requestNextDayPlanError').timeBased().at(triggerTimeByCheckNextPlanTime).create();
+        Utilities.sleep(sleepTime);
     }
     
     // 次回分の作業予定の記入依頼
     const triggerTimeByRequestNextPlanTime = getTriggerSetTime_(config.requestNextPlanTime);
     if (triggerTimeByRequestNextPlanTime) {
         ScriptApp.newTrigger('requestNextDayPlan').timeBased().at(triggerTimeByRequestNextPlanTime).create();
+        Utilities.sleep(sleepTime);
     }
     
     // 指定セルの報告
     const triggerTimeByReportCellTime = getTriggerSetTime_(config.reportCellTime);
     if (triggerTimeByReportCellTime) {
         ScriptApp.newTrigger('targetCellReport').timeBased().at(triggerTimeByReportCellTime).create();
+        Utilities.sleep(sleepTime);
+    }
+    
+    // 朝会の報告
+    const triggerTimeByMorningTime = getTriggerSetTime_(config.morningTime);
+    if (triggerTimeByMorningTime) {
+        ScriptApp.newTrigger('morningStart').timeBased().at(triggerTimeByMorningTime).create();
+        Utilities.sleep(sleepTime);
+    }
+    
+    // 自由発言
+    const triggerTimeByFreedomWordingTime = getTriggerSetTime_(config.freedomWordingTime);
+    if (triggerTimeByFreedomWordingTime) {
+        ScriptApp.newTrigger('freedomWording').timeBased().at(triggerTimeByFreedomWordingTime).create();
+        Utilities.sleep(sleepTime);
     }
 }
 
@@ -268,12 +333,34 @@ function deleteTriggerWithoutRequired()
         "requestNextDayPlanError",
         "endOfWorkReport",
         "targetCellReport",
-        "setReportTrigger"
+        "setReportTrigger",
+        "morningStart",
+        "freedomWording"
     ];
     
     const triggers = ScriptApp.getProjectTriggers();
     for (const trigger of triggers) {
         if (!ignore.includes(trigger.getHandlerFunction())) {
+            ScriptApp.deleteTrigger(trigger);
+        }
+    }
+}
+
+/**
+ * 本日の作業報告用のトリガーを削除する（非公開扱い）
+ */
+function deleteReportTrigger_()
+{
+    // 消す対象とするトリガー一覧
+    const ignore = [
+        "requestReportWrite",
+        "reportCheck",
+        "reportErrorCheckOnly"
+    ];
+    
+    const triggers = ScriptApp.getProjectTriggers();
+    for (const trigger of triggers) {
+        if (ignore.includes(trigger.getHandlerFunction())) {
             ScriptApp.deleteTrigger(trigger);
         }
     }
@@ -400,7 +487,7 @@ function planError_(isNextDay: boolean)
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     
-    // 次の営業日を取得
+    // 営業日情報を取得
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay);
     
@@ -439,6 +526,12 @@ function report_(needSuccessReport: boolean = true)
         return;
     }
     
+    // 報告実行のタイミングでトリガーをリフレッシュする（古いトリガーを削除する）
+    if (needSuccessReport) {
+        deleteReportTrigger_();
+        setReportTrigger();
+    }
+    
     const errorMember = [];
     const ngRuleMember = [];
     const successMember = [];
@@ -465,7 +558,7 @@ function report_(needSuccessReport: boolean = true)
         if (reportNowTime === null) {
             continue;
         }
-
+        
         // 設定値で入力されている番号と配列の番号には1つ分ずれがある（配列は0始まり）ための考慮
         const resultReportNowTime = reportNowTime[config.workResultColumnNumber - 1];
         const resultReportBeforeTime = resultBeforeTime[config.workResultColumnNumber - 1];

@@ -146,6 +146,26 @@ export default class SendMessage
     }
     
     /**
+     * 朝会報告
+     *
+     * @param {string[][]} members
+     */
+    public sendMorning(members: string[][])
+    {
+        this.sendMessage(members, "朝会のテンプレート", false, this._config.morningRoomId, true, false);
+    }
+    
+    /**
+     * 自由ワード報告
+     *
+     * @param {string[][]} members
+     */
+    public freedomWording(members: string[][])
+    {
+        this.sendMessage(members, "自由発言のテンプレート", false, this._config.freedomWordingRoomId, true, false);
+    }
+    
+    /**
      * 指定セル番号の内容を送る
      *
      * @param {string[][]} members
@@ -285,8 +305,9 @@ export default class SendMessage
      * @param {boolean} isNextDay
      * @param {string} targetRoomId
      * @param {boolean} withToChat
+     * @param {boolean} sheetUrl
      */
-    private sendMessage(members: string[][], templateName: string, isNextDay: boolean, targetRoomId: string, withToChat: boolean = true)
+    private sendMessage(members: string[][], templateName: string, isNextDay: boolean, targetRoomId: string, withToChat: boolean = true, sheetUrl: boolean = true)
     {
         // 設定の取得
         const config = new Config();
@@ -310,16 +331,20 @@ export default class SendMessage
                 for (const member of membersGroup[key]) {
                     // グループ名を最初に記載する
                     if (loopKeyName !== key) {
+                        // URLなしの時はグループの区切り箇所にのみ改行後スペースを入れる
+                        if (message !== "" && sheetUrl === false) {
+                            message += "\n";
+                        }
                         message += this._config.emoji + key + this._config.emoji + "\n";
                         loopKeyName = key;
                     }
                     
-                    message += this.getSendMessageText(withToChat, member, isNextDay);
+                    message += this.getSendMessageText(withToChat, member, isNextDay, sheetUrl);
                 }
             }
         } else {
             for (const member of members) {
-                message += this.getSendMessageText(withToChat, member, isNextDay);
+                message += this.getSendMessageText(withToChat, member, isNextDay, sheetUrl);
             }
         }
         
@@ -340,16 +365,23 @@ export default class SendMessage
      * @param {boolean} withToChat
      * @param {string[]} member
      * @param {boolean} isNextDay
+     * @param {boolean} sheetUrl
      * @returns {string}
      */
-    private getSendMessageText(withToChat: boolean, member: string[], isNextDay: boolean)
+    private getSendMessageText(withToChat: boolean, member: string[], isNextDay: boolean, sheetUrl: boolean)
     {
         let message = "";
         
         if (withToChat) {
-            message += member["ChatWorkID"] + "\n" + this.getSheetURL(member, isNextDay) + "\n\n";
+            message += member["ChatWorkID"] + "\n";
+            if (sheetUrl) {
+                message += this.getSheetURL(member, isNextDay) + "\n\n";
+            }
         } else {
-            message += member["名前"] + "\n" + this.getSheetURL(member, isNextDay) + "\n\n";
+            message += member["名前"] + "\n";
+            if (sheetUrl) {
+                message += this.getSheetURL(member, isNextDay) + "\n\n";
+            }
         }
         
         return message;
