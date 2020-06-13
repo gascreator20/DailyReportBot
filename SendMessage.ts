@@ -142,7 +142,7 @@ export default class SendMessage
      */
     public sendEndOfWorkReport(members: string[][])
     {
-        this.sendMessage(members, "終了報告テンプレート", false, this._config.workerRoomId, false);
+        this.sendMessage(members, "終了報告テンプレート", false, this._config.endOfWorkReportRoomId, false);
     }
     
     /**
