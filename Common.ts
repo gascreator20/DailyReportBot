@@ -32,8 +32,8 @@ export default class Common
      */
     public static convertTime(date: string, time: string)
     {
-        console.log("run:convertTime");
-        console.log(date);
+        date = String(date);
+        time = String(time);
     
         const [startTime, endTime] = time.split('-');
         const [startHour, startMinute] = startTime.split(':');
