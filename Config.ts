@@ -13,8 +13,6 @@ export default class Config
     private readonly _rangeRow;
     private readonly _testRoomId;
     private readonly _workerRoomId;
-    private readonly _managementRoomId;
-    private readonly _template;
     private readonly _isTest;
     private readonly _requestWriteTimes;
     private readonly _reportTime;
@@ -41,6 +39,10 @@ export default class Config
     private readonly _emoji;
     private readonly _spreadsheetIdManagement;
     private readonly _spreadsheetIdMember;
+    private readonly _morningTime;
+    private readonly _freedomWordingTime;
+    private readonly _morningRoomId;
+    private readonly _freedomWordingRoomId;
     
     constructor()
     {
@@ -53,7 +55,7 @@ export default class Config
         this._prefix = keyValueSheetReader.find("設定", "キー名", "スプレッドシートのファイル名の接頭語")["値"];
         this._isReportRetryTime = keyValueSheetReader.find("設定", "キー名", "エラーの再検知を行うかどうか")["値"];
         this._reportSortKey = keyValueSheetReader.find("設定", "キー名", "報告のソートに使用するキー")["値"];
-
+        
         // 日報シート関連
         this._calendarType = keyValueSheetReader.find("設定", "キー名", "カレンダー形式（日報シート名）")["値"];
         this._templateWide = keyValueSheetReader.find("設定", "キー名", "日報テンプレートの横幅")["値"];
@@ -69,6 +71,8 @@ export default class Config
         this._testRoomId = keyValueSheetReader.find("設定", "キー名", "テスト用ルームID")["値"];
         this._workerRoomId = keyValueSheetReader.find("設定", "キー名", "作業者ルームID")["値"];
         this._endOfWorkReportRoomId = keyValueSheetReader.find("設定", "キー名", "終業報告場所のルームID")["値"];
+        this._morningRoomId = keyValueSheetReader.find("設定", "キー名", "朝会報告のルームID")["値"];
+        this._freedomWordingRoomId = keyValueSheetReader.find("設定", "キー名", "自由発言文の発言ルームID")["値"];
         this._isTest = keyValueSheetReader.find("設定", "キー名", "テストモードかどうか")["値"];
         this._emoji = keyValueSheetReader.find("設定", "キー名", "報告時に付く英文字")["値"];
         
@@ -88,6 +92,18 @@ export default class Config
         this._checkNextPlanTime = keyValueSheetReader.find("設定", "キー名", "次回分の作業予定の記入が正しいかチェックする時間")["値"];
         this._requestNextPlanTime = keyValueSheetReader.find("設定", "キー名", "次回分の作業予定記入依頼の時間")["値"];
         this._reportCellTime = keyValueSheetReader.find("設定", "キー名", "指定セル報告を行う時間")["値"];
+        this._morningTime = keyValueSheetReader.find("設定", "キー名", "朝会報告を行う時間")["値"];
+        this._freedomWordingTime = keyValueSheetReader.find("設定", "キー名", "自由発言文の発言を行う時間")["値"];
+    }
+    
+    public get morningRoomId()
+    {
+        return this._morningRoomId;
+    }
+    
+    public get freedomWordingRoomId()
+    {
+        return this._freedomWordingRoomId;
     }
     
     public get spreadsheetIdManagement()
@@ -225,16 +241,6 @@ export default class Config
         return this._workerRoomId;
     }
     
-    public get managementRoomId()
-    {
-        return this._managementRoomId;
-    }
-    
-    public get template()
-    {
-        return this._template;
-    }
-    
     public get isTest()
     {
         return this._isTest;
@@ -268,6 +274,16 @@ export default class Config
     public get calendarSheetKey()
     {
         return this._calendarSheetKey;
+    }
+    
+    public get morningTime()
+    {
+        return this._morningTime;
+    }
+    
+    public get freedomWordingTime()
+    {
+        return this._freedomWordingTime;
     }
 }
 
