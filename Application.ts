@@ -321,46 +321,19 @@ function initializationTrigger()
 }
 
 /**
- * セットされているトリガーを削除する（消す必要がないものは維持）
+ * 本日の作業報告用のトリガーを削除する
  */
-function deleteTriggerWithoutRequired()
+function deleteReportTrigger()
 {
-    // 消す対象としないトリガー一覧
-    const ignore = [
-        "createNextDayTemplate",
-        "requestTodayPlanError",
-        "requestNextDayPlan",
-        "requestNextDayPlanError",
-        "endOfWorkReport",
-        "targetCellReport",
-        "setReportTrigger",
-        "morningStart",
-        "freedomWording"
-    ];
-    
     const triggers = ScriptApp.getProjectTriggers();
     for (const trigger of triggers) {
-        if (!ignore.includes(trigger.getHandlerFunction())) {
+        if (trigger.getHandlerFunction() === "requestReportWrite") {
             ScriptApp.deleteTrigger(trigger);
         }
-    }
-}
-
-/**
- * 本日の作業報告用のトリガーを削除する（非公開扱い）
- */
-function deleteReportTrigger_()
-{
-    // 消す対象とするトリガー一覧
-    const ignore = [
-        "requestReportWrite",
-        "reportCheck",
-        "reportErrorCheckOnly"
-    ];
-    
-    const triggers = ScriptApp.getProjectTriggers();
-    for (const trigger of triggers) {
-        if (ignore.includes(trigger.getHandlerFunction())) {
+        if (trigger.getHandlerFunction() === "reportCheck") {
+            ScriptApp.deleteTrigger(trigger);
+        }
+        if (trigger.getHandlerFunction() === "reportErrorCheckOnly") {
             ScriptApp.deleteTrigger(trigger);
         }
     }
@@ -528,7 +501,7 @@ function report_(needSuccessReport: boolean = true)
     
     // 報告実行のタイミングでトリガーをリフレッシュする（古いトリガーを削除する）
     if (needSuccessReport) {
-        deleteReportTrigger_();
+        deleteReportTrigger();
         setReportTrigger();
     }
     
