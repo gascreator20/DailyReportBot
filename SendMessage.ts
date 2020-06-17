@@ -235,7 +235,7 @@ export default class SendMessage
         const keyValueSheetReader = new KeyValueSheet();
         const config = new Config();
         const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-        const calendar = keyValueSheetReader.find("カレンダー", this._config.calendarSheetKey, nowTime, isNextDay);
+        const calendar = keyValueSheetReader.find("カレンダー", this._config.calendarSheetKey, nowTime, isNextDay, config.spreadsheetIdMember);
         const sheetByMember = SpreadsheetApp.openById(member["SpreadsheetID"]).getSheetByName(calendar[this._config.calendarSheetKey]);
         
         if (!sheetByMember) {

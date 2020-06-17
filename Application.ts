@@ -46,7 +46,7 @@ function targetCellReport()
     const worker = new Worker();
     const members = worker.getWorkMember();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
     const chatWork = new SendMessage();
     
     // カウントを進める
@@ -129,7 +129,7 @@ function requestReportWrite()
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
     
     // ひとつまえの時間帯で勤務中の人が対象
     const worker = new Worker();
@@ -363,7 +363,7 @@ function createTodayTemplate()
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
     
     // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
     const spreadSheetCreator = new SpreadSheetCreator();
@@ -385,7 +385,7 @@ function createNextDayTemplate()
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, true);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, true, config.spreadsheetIdMember);
     
     // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
     const spreadSheetCreator = new SpreadSheetCreator();
@@ -462,7 +462,7 @@ function planError_(isNextDay: boolean)
     
     // 営業日情報を取得
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay, config.spreadsheetIdMember);
     
     // 予定が正確に入力されているかどうかの検証
     const worker = new Worker();
@@ -514,7 +514,7 @@ function report_(needSuccessReport: boolean = true)
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
     
     // 予定が正確に入力されているかどうかの検証
     const worker = new Worker();
@@ -581,7 +581,7 @@ function isWorkDayToday_()
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
     
     if (!calendar) {
         console.log("本日は営業日ではありません");

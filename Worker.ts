@@ -17,10 +17,10 @@ export default class Worker
         const config = new Config();
         const keyValueSheetReader = new KeyValueSheet();
         const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime);
+        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
         const members = this.getWorkMember();
         const joinMembers = [];
-    
+        
         for (const member of members) {
             // 勤務時間外の場合はnullが返る。nullの場合は何も作業していないので作業報告者対象から除外する
             const spreadSheetReader = new DailyReportSheetReader();
@@ -28,10 +28,10 @@ export default class Worker
             if (reportNowTime === null) {
                 continue;
             }
-        
+            
             joinMembers.push(member);
         }
-    
+        
         return joinMembers;
     }
     
@@ -51,7 +51,7 @@ export default class Worker
         
         // 営業日を取得
         const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay);
+        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay, config.spreadsheetIdMember);
         
         // 対象外となるメンバーを除外する
         const rowsMemberList = keyValueSheetReader.getAll("メンバーリスト", config.spreadsheetIdMember);
