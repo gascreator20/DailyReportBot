@@ -78,11 +78,11 @@ export default class SendMessage
      * 作業予定計画のエラーチェック（翌日分を参照）
      *
      * @param {string[][]} members
-     * @param {boolean} isNextDay
+     * @param {number} nextDayCount
      */
-    public sendRequestNextDayPlanError(members: string[][], isNextDay: boolean)
+    public sendRequestNextDayPlanError(members: string[][], nextDayCount: number)
     {
-        this.sendMessage(members, "作業予定記入要求エラーテンプレート", isNextDay, this._config.workerRoomId);
+        this.sendMessage(members, "作業予定記入要求エラーテンプレート", nextDayCount, this._config.workerRoomId);
     }
     
     /**
@@ -92,7 +92,7 @@ export default class SendMessage
      */
     public sendRequestNextDayPlan(members: string[][])
     {
-        this.sendMessage(members, "作業予定記入要求テンプレート", true, this._config.workerRoomId);
+        this.sendMessage(members, "作業予定記入要求テンプレート", 1, this._config.workerRoomId);
     }
     
     /**
@@ -102,7 +102,7 @@ export default class SendMessage
      */
     public sendDailyTimeReport(members: string[][])
     {
-        this.sendMessage(members, "作業報告成功テンプレート", false, this._config.workerRoomId);
+        this.sendMessage(members, "作業報告成功テンプレート", 0, this._config.workerRoomId);
     }
     
     /**
@@ -112,7 +112,7 @@ export default class SendMessage
      */
     public sendDailyTimeReportError(members: string[][])
     {
-        this.sendMessage(members, "作業報告のエラーテンプレート", false, this._config.workerRoomId);
+        this.sendMessage(members, "作業報告のエラーテンプレート", 0, this._config.workerRoomId);
     }
     
     /**
@@ -122,7 +122,7 @@ export default class SendMessage
      */
     public sendDailyTimeReportNgRule(members: string[][])
     {
-        this.sendMessage(members, "作業報告のルール違反テンプレート", false, this._config.workerRoomId);
+        this.sendMessage(members, "作業報告のルール違反テンプレート", 0, this._config.workerRoomId);
     }
     
     /**
@@ -132,7 +132,7 @@ export default class SendMessage
      */
     public sendRequestDailyTimeReport(members: string[][])
     {
-        this.sendMessage(members, "作業報告記入依頼テンプレート", false, this._config.workerRoomId);
+        this.sendMessage(members, "作業報告記入依頼テンプレート", 0, this._config.workerRoomId);
     }
     
     /**
@@ -142,7 +142,7 @@ export default class SendMessage
      */
     public sendEndOfWorkReport(members: string[][])
     {
-        this.sendMessage(members, "終了報告テンプレート", false, this._config.endOfWorkReportRoomId, false);
+        this.sendMessage(members, "終了報告テンプレート", 0, this._config.endOfWorkReportRoomId, false);
     }
     
     /**
@@ -152,7 +152,7 @@ export default class SendMessage
      */
     public sendMorning(members: string[][])
     {
-        this.sendMessage(members, "朝会のテンプレート", false, this._config.morningRoomId, true, false);
+        this.sendMessage(members, "朝会のテンプレート", 0, this._config.morningRoomId, true, false);
     }
     
     /**
@@ -162,7 +162,7 @@ export default class SendMessage
      */
     public freedomWording(members: string[][])
     {
-        this.sendMessage(members, "自由発言のテンプレート", false, this._config.freedomWordingRoomId, true, false);
+        this.sendMessage(members, "自由発言のテンプレート", 0, this._config.freedomWordingRoomId, true, false);
     }
     
     /**
@@ -226,16 +226,16 @@ export default class SendMessage
      * シートのURLを取得する
      *
      * @param {string[]} member
-     * @param {boolean} isNextDay
+     * @param {boolean} nextDayCount
      * @returns {string}
      */
-    private getSheetURL(member: string[], isNextDay: boolean): string
+    private getSheetURL(member: string[], nextDayCount: number): string
     {
         // 設定値の取得
         const keyValueSheetReader = new KeyValueSheet();
         const config = new Config();
         const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-        const calendar = keyValueSheetReader.find("カレンダー", this._config.calendarSheetKey, nowTime, isNextDay, config.spreadsheetIdMember);
+        const calendar = keyValueSheetReader.find("カレンダー", this._config.calendarSheetKey, nowTime, nextDayCount, config.spreadsheetIdMember);
         const sheetByMember = SpreadsheetApp.openById(member["SpreadsheetID"]).getSheetByName(calendar[this._config.calendarSheetKey]);
         
         if (!sheetByMember) {
@@ -285,7 +285,7 @@ export default class SendMessage
             }
             
             const cellValue = sheet.getRange(cell["cellNumber"]).getValue();
-            message += member["名前"] + countMessage + "\n" + this.getSheetURL(member, false) + "\n";
+            message += member["名前"] + countMessage + "\n" + this.getSheetURL(member, 0) + "\n";
             message += cell["title"] + "\n";
             if (cellValue === "" || invalidTextByCellReportArray.includes(String(cellValue))) {
                 message += "特になし" + "\n\n";
@@ -302,12 +302,12 @@ export default class SendMessage
      *
      * @param {string[][]} members
      * @param {string} templateName
-     * @param {boolean} isNextDay
+     * @param {number} nextDayCount
      * @param {string} targetRoomId
      * @param {boolean} withToChat
      * @param {boolean} sheetUrl
      */
-    private sendMessage(members: string[][], templateName: string, isNextDay: boolean, targetRoomId: string, withToChat: boolean = true, sheetUrl: boolean = true)
+    private sendMessage(members: string[][], templateName: string, nextDayCount: number, targetRoomId: string, withToChat: boolean = true, sheetUrl: boolean = true)
     {
         // 設定の取得
         const config = new Config();
@@ -339,12 +339,12 @@ export default class SendMessage
                         loopKeyName = key;
                     }
                     
-                    message += this.getSendMessageText(withToChat, member, isNextDay, sheetUrl);
+                    message += this.getSendMessageText(withToChat, member, nextDayCount, sheetUrl);
                 }
             }
         } else {
             for (const member of members) {
-                message += this.getSendMessageText(withToChat, member, isNextDay, sheetUrl);
+                message += this.getSendMessageText(withToChat, member, nextDayCount, sheetUrl);
             }
         }
         
@@ -364,27 +364,26 @@ export default class SendMessage
      *
      * @param {boolean} withToChat
      * @param {string[]} member
-     * @param {boolean} isNextDay
+     * @param {number} nextDayCount
      * @param {boolean} sheetUrl
      * @returns {string}
      */
-    private getSendMessageText(withToChat: boolean, member: string[], isNextDay: boolean, sheetUrl: boolean)
+    private getSendMessageText(withToChat: boolean, member: string[], nextDayCount: number, sheetUrl: boolean)
     {
         let message = "";
         
         if (withToChat) {
             message += member["ChatWorkID"] + "\n";
             if (sheetUrl) {
-                message += this.getSheetURL(member, isNextDay) + "\n\n";
+                message += this.getSheetURL(member, nextDayCount) + "\n\n";
             }
         } else {
             message += member["名前"] + "\n";
             if (sheetUrl) {
-                message += this.getSheetURL(member, isNextDay) + "\n\n";
+                message += this.getSheetURL(member, nextDayCount) + "\n\n";
             }
         }
         
         return message;
     }
 }
-

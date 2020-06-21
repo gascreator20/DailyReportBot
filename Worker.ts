@@ -17,7 +17,7 @@ export default class Worker
         const config = new Config();
         const keyValueSheetReader = new KeyValueSheet();
         const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
+        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, 0, config.spreadsheetIdMember);
         const members = this.getWorkMember();
         const joinMembers = [];
         
@@ -38,10 +38,10 @@ export default class Worker
     /**
      * 作業メンバーの情報を取得する
      *
-     * @param {boolean} isNextDay 次の営業日のデータを対象とするかどうか
+     * @param {number} nextDayCount いくつ先の営業日のデータを対象とするかどうか
      * @return {string[][]}
      */
-    public getWorkMember(isNextDay: boolean = false): string[][]
+    public getWorkMember(nextDayCount: number = 0): string[][]
     {
         const result = [];
         
@@ -51,12 +51,12 @@ export default class Worker
         
         // 営業日を取得
         const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay, config.spreadsheetIdMember);
+        const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, nextDayCount, config.spreadsheetIdMember);
         
         // 対象外となるメンバーを除外する
         const rowsMemberList = keyValueSheetReader.getAll("メンバーリスト", config.spreadsheetIdMember);
         for (const rowsMember of rowsMemberList) {
-            const rowsMemberManagement = keyValueSheetReader.find("メンバー管理", "名前", rowsMember["名前"], false, config.spreadsheetIdManagement);
+            const rowsMemberManagement = keyValueSheetReader.find("メンバー管理", "名前", rowsMember["名前"], 0, config.spreadsheetIdManagement);
             
             if (rowsMemberManagement === null) {
                 console.log(rowsMember["名前"] + "の情報を管理メンバーシートで参照できませんでした");

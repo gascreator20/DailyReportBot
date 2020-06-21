@@ -13,7 +13,7 @@ function onOpen()
 {
     const ui = SpreadsheetApp.getUi();
     ui.createMenu("日報報告機能")
-        .addItem("本日分の日報を用意", "createTodayTemplate")
+        .addItem("本日分の日報を用意", "createTemplateSheet")
         .addItem("次回分の日報を用意", "createNextDayTemplate")
         .addItem("作業予定記入チェック（当日分を確認）", "requestTodayPlanError")
         .addItem("朝会の実行", "morningStart")
@@ -46,7 +46,7 @@ function targetCellReport()
     const worker = new Worker();
     const members = worker.getWorkMember();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, 0, config.spreadsheetIdMember);
     const chatWork = new SendMessage();
     
     // カウントを進める
@@ -129,7 +129,7 @@ function requestReportWrite()
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, 0, config.spreadsheetIdMember);
     
     // ひとつまえの時間帯で勤務中の人が対象
     const worker = new Worker();
@@ -174,7 +174,7 @@ function reportCheck()
  */
 function requestNextDayPlanError()
 {
-    planError_(true);
+    planError_(1);
 }
 
 /**
@@ -182,7 +182,7 @@ function requestNextDayPlanError()
  */
 function requestTodayPlanError()
 {
-    planError_(false);
+    planError_(0);
 }
 
 /**
@@ -195,7 +195,7 @@ function requestNextDayPlan()
     }
     
     const worker = new Worker();
-    const members = worker.getWorkMember(true);
+    const members = worker.getWorkMember(1);
     
     // 報告
     const chatWork = new SendMessage();
@@ -355,27 +355,21 @@ function deleteTrigger()
  */
 function createTodayTemplate()
 {
-    if (!isWorkDayToday_()) {
-        return;
-    }
-    
-    // 次の営業日を取得
-    const config = new Config();
-    const keyValueSheetReader = new KeyValueSheet();
-    const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
-    
-    // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
-    const spreadSheetCreator = new SpreadSheetCreator();
-    const sheetTemplate = SpreadsheetApp.openById(config.spreadsheetIdManagement).getSheetByName('テンプレート');
-    
-    spreadSheetCreator.copy(config.driveDirectoryId, sheetTemplate, calendar[config.calendarSheetKey]);
+    createTemplateSheet(0);
 }
 
 /**
  * テンプレートシートを用意する
  */
 function createNextDayTemplate()
+{
+    createTemplateSheet(1);
+}
+
+/**
+ * テンプレートシートを用意する
+ */
+function createTemplateSheet(nextRowCount: number)
 {
     if (!isWorkDayToday_()) {
         return;
@@ -385,11 +379,16 @@ function createNextDayTemplate()
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, true, config.spreadsheetIdMember);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, nextRowCount, config.spreadsheetIdMember);
+    
+    // カレンダーを参照できなければその時点で処理を終了とする
+    if (calendar === null) {
+        return;
+    }
     
     // 指定ディレクトリ内のすべてにテンプレートファイルをコピー（ファイル名は年月日）
     const spreadSheetCreator = new SpreadSheetCreator();
-    const sheetTemplate = SpreadsheetApp.openById(config.spreadsheetIdManagement).getSheetByName("テンプレート");
+    const sheetTemplate = SpreadsheetApp.openById(config.spreadsheetIdManagement).getSheetByName('テンプレート');
     
     spreadSheetCreator.copy(config.driveDirectoryId, sheetTemplate, calendar[config.calendarSheetKey]);
 }
@@ -448,7 +447,7 @@ function getTriggerSetTime_(time: string)
 /**
  * 作業予定エラー検知（非公開扱い）
  */
-function planError_(isNextDay: boolean)
+function planError_(nextDayCount: number)
 {
     if (!isWorkDayToday_()) {
         return;
@@ -462,11 +461,11 @@ function planError_(isNextDay: boolean)
     
     // 営業日情報を取得
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, isNextDay, config.spreadsheetIdMember);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, nextDayCount, config.spreadsheetIdMember);
     
     // 予定が正確に入力されているかどうかの検証
     const worker = new Worker();
-    const members = worker.getWorkMember(isNextDay);
+    const members = worker.getWorkMember(nextDayCount);
     for (const member of members) {
         const spreadSheetReader = new DailyReportSheetReader();
         const dailyReportRow = spreadSheetReader.findDailyReportByWorkStartTime(member, calendar);
@@ -484,7 +483,7 @@ function planError_(isNextDay: boolean)
     // 報告
     if (errorMember.length >= 1) {
         const chatWork = new SendMessage();
-        chatWork.sendRequestNextDayPlanError(errorMember, isNextDay);
+        chatWork.sendRequestNextDayPlanError(errorMember, nextDayCount);
     } else {
         console.log("対象者はいませんでした")
     }
@@ -514,7 +513,7 @@ function report_(needSuccessReport: boolean = true)
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, 0, config.spreadsheetIdMember);
     
     // 予定が正確に入力されているかどうかの検証
     const worker = new Worker();
@@ -581,7 +580,7 @@ function isWorkDayToday_()
     const config = new Config();
     const keyValueSheetReader = new KeyValueSheet();
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
-    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, false, config.spreadsheetIdMember);
+    const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, 0, config.spreadsheetIdMember);
     
     if (!calendar) {
         console.log("本日は営業日ではありません");

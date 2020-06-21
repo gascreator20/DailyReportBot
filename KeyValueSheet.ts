@@ -79,11 +79,11 @@ export default class KeyValueSheet
      * @param {string} sheetName
      * @param {string} columnName
      * @param {string} targetName
-     * @param {boolean} isNextRow
+     * @param {number} nextRowCount
      * @param {boolean} spreadsheetId
      * @returns {string[]}
      */
-    public find(sheetName: string, columnName: string, targetName: string, isNextRow: boolean = false, spreadsheetId: string = null): string[]
+    public find(sheetName: string, columnName: string, targetName: string, nextRowCount: number = 0, spreadsheetId: string = null): string[]
     {
         // 既にキャッシュ済みの場合は作らない（一度読み込んだものはキャッシュしておく）
         if (!KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName]) {
@@ -92,12 +92,8 @@ export default class KeyValueSheet
         
         for (let i = 0; i < KeyValueSheet.rowcountCacheBySheetName[sheetName]; i++) {
             if (String(KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName][i][columnName]) === targetName) {
-                if (!isNextRow) {
-                    return KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName][i];
-                }
-                
-                if (KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName][i + 1]) {
-                    return KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName][i + 1];
+                if (KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName][i + nextRowCount]) {
+                    return KeyValueSheet.sheetDataCacheWithConvertBySheetName[sheetName][i + nextRowCount];
                 } else {
                     console.log('参照データが見つかりませんでした');
                 }
