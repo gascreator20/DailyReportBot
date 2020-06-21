@@ -59,7 +59,7 @@ function targetCellReport()
     keyValueSheetReader.flushLocalCache();
     
     // 送信
-    chatWork.sendCellContent(members, calendar, "指定セルの内容をまとめて送信のエラーテンプレート");
+    chatWork.sendCellContent(worker.getWorkMember(), calendar, "指定セルの内容をまとめて送信のエラーテンプレート");
 }
 
 /**
