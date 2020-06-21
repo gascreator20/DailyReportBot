@@ -183,7 +183,7 @@ export default class SendMessage
         let message = "";
         
         if (!config.cellNumberByCellReport || config.cellNumberByCellReport === "") {
-            return "指定が正しくありません。json形式で入力して下さい";
+            console.log("指定が正しくありません。json形式で入力して下さい")
         }
         
         // 報告の順番をソートするかどうか
@@ -214,9 +214,10 @@ export default class SendMessage
         if (members.length >= 1) {
             message = template.replace("@", message);
         } else {
-            message = template.replace("@", "該当者なし");
+            console.log("対象者はいませんでした")
+            return;
         }
-        
+    
         // メッセージ送信
         const chatWork = new ChatWork();
         chatWork.sendMessage(message, this._config.roomIdByCellReport);
@@ -351,7 +352,8 @@ export default class SendMessage
         if (members.length >= 1) {
             message = template.replace("@", message);
         } else {
-            message = template.replace("@", "該当者なし");
+            console.log("対象者はいませんでした")
+            return;
         }
         
         // メッセージ送信
