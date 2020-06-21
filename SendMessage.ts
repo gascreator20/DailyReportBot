@@ -217,7 +217,7 @@ export default class SendMessage
             console.log("対象者はいませんでした")
             return;
         }
-    
+        
         // メッセージ送信
         const chatWork = new ChatWork();
         chatWork.sendMessage(message, this._config.roomIdByCellReport);
@@ -288,7 +288,11 @@ export default class SendMessage
             const cellValue = sheet.getRange(cell["cellNumber"]).getValue();
             message += member["名前"] + countMessage + "\n" + this.getSheetURL(member, 0) + "\n";
             message += cell["title"] + "\n";
-            if (cellValue === "" || invalidTextByCellReportArray.includes(String(cellValue))) {
+            
+            // 無効な記入の場合は強制的に「特になし」とする
+            if (cellValue === "") {
+                message += "特になし" + "\n\n";
+            } else if (invalidTextByCellReportArray.indexOf(String(cellValue)) !== -1) {
                 message += "特になし" + "\n\n";
             } else {
                 message += cellValue + "\n\n";
