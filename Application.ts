@@ -561,7 +561,7 @@ function report_(needSuccessReport: boolean = true)
     }
     
     // 再通知トリガー（エラー通知のループを避けるために成功時の報告の時でしか再通知トリガーはセットしない）
-    if (error && needSuccessReport && config.isReportRetryTime) {
+    if (error && needSuccessReport && (config.isReportRetryTime === "TRUE" || config.isReportRetryTime === "true")) {
         const triggerDate = new Date();
         triggerDate.setHours(triggerDate.getHours());
         triggerDate.setMinutes(triggerDate.getMinutes() + Number(config.reportRetryTime));
