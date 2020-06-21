@@ -66,7 +66,9 @@ export default class SendMessage
         const cells = JSON.parse(config.cellNumberByCellReport);
         for (const cell of cells["output"]) {
             const cellValue = sheet.getRange(cell["cellNumber"]).getValue();
-            if (cellValue === "" || invalidTextByCellReportArray.includes(String(cellValue))) {
+            if (cellValue === "") {
+                SendMessage.changeWriteCountDetail(member, true);
+            } else if (invalidTextByCellReportArray.indexOf(String(cellValue)) !== -1) {
                 SendMessage.changeWriteCountDetail(member, true);
             } else {
                 SendMessage.changeWriteCountDetail(member, false);
