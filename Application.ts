@@ -38,7 +38,7 @@ function onOpen()
  */
 function targetCellReport()
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     const config = new Config();
@@ -67,7 +67,7 @@ function targetCellReport()
  */
 function endOfWorkReport()
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     
@@ -84,7 +84,7 @@ function endOfWorkReport()
  */
 function morningStart()
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     
@@ -101,7 +101,7 @@ function morningStart()
  */
 function freedomWording()
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     
@@ -118,7 +118,7 @@ function freedomWording()
  */
 function requestReportWrite()
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     
@@ -158,7 +158,7 @@ function requestReportWrite()
  */
 function reportErrorCheckOnly()
 {
-    report_(false);
+    report(false);
 }
 
 /**
@@ -166,7 +166,7 @@ function reportErrorCheckOnly()
  */
 function reportCheck()
 {
-    report_(true);
+    report(true);
 }
 
 /**
@@ -174,7 +174,7 @@ function reportCheck()
  */
 function requestNextDayPlanError()
 {
-    planError_(1);
+    planError(1);
 }
 
 /**
@@ -182,7 +182,7 @@ function requestNextDayPlanError()
  */
 function requestTodayPlanError()
 {
-    planError_(0);
+    planError(0);
 }
 
 /**
@@ -190,7 +190,7 @@ function requestTodayPlanError()
  */
 function requestNextDayPlan()
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     
@@ -264,56 +264,56 @@ function initializationTrigger()
     Utilities.sleep(sleepTime);
     
     // 終業報告
-    const triggerTimeByEndOfWorkReportTime = getTriggerSetTime_(config.endOfWorkReportTime);
+    const triggerTimeByEndOfWorkReportTime = getTriggerSetTime(config.endOfWorkReportTime);
     if (triggerTimeByEndOfWorkReportTime) {
         ScriptApp.newTrigger('endOfWorkReport').timeBased().at(triggerTimeByEndOfWorkReportTime).create();
         Utilities.sleep(sleepTime);
     }
     
     // 日報自動生成
-    const triggerTimeByTemplateCreateTime = getTriggerSetTime_(config.templateCreateTime);
+    const triggerTimeByTemplateCreateTime = getTriggerSetTime(config.templateCreateTime);
     if (triggerTimeByTemplateCreateTime) {
         ScriptApp.newTrigger('createNextDayTemplate').timeBased().at(triggerTimeByTemplateCreateTime).create();
         Utilities.sleep(sleepTime);
     }
     
     // 当日分の作業予定の検証
-    const triggerTimeByCheckTodayPlanTime = getTriggerSetTime_(config.checkTodayPlanTime);
+    const triggerTimeByCheckTodayPlanTime = getTriggerSetTime(config.checkTodayPlanTime);
     if (triggerTimeByCheckTodayPlanTime) {
         ScriptApp.newTrigger('requestTodayPlanError').timeBased().at(triggerTimeByCheckTodayPlanTime).create();
         Utilities.sleep(sleepTime);
     }
     
     // 次回分の作業予定の検証
-    const triggerTimeByCheckNextPlanTime = getTriggerSetTime_(config.checkNextPlanTime);
+    const triggerTimeByCheckNextPlanTime = getTriggerSetTime(config.checkNextPlanTime);
     if (triggerTimeByCheckNextPlanTime) {
         ScriptApp.newTrigger('requestNextDayPlanError').timeBased().at(triggerTimeByCheckNextPlanTime).create();
         Utilities.sleep(sleepTime);
     }
     
     // 次回分の作業予定の記入依頼
-    const triggerTimeByRequestNextPlanTime = getTriggerSetTime_(config.requestNextPlanTime);
+    const triggerTimeByRequestNextPlanTime = getTriggerSetTime(config.requestNextPlanTime);
     if (triggerTimeByRequestNextPlanTime) {
         ScriptApp.newTrigger('requestNextDayPlan').timeBased().at(triggerTimeByRequestNextPlanTime).create();
         Utilities.sleep(sleepTime);
     }
     
     // 指定セルの報告
-    const triggerTimeByReportCellTime = getTriggerSetTime_(config.reportCellTime);
+    const triggerTimeByReportCellTime = getTriggerSetTime(config.reportCellTime);
     if (triggerTimeByReportCellTime) {
         ScriptApp.newTrigger('targetCellReport').timeBased().at(triggerTimeByReportCellTime).create();
         Utilities.sleep(sleepTime);
     }
     
     // 朝会の報告
-    const triggerTimeByMorningTime = getTriggerSetTime_(config.morningTime);
+    const triggerTimeByMorningTime = getTriggerSetTime(config.morningTime);
     if (triggerTimeByMorningTime) {
         ScriptApp.newTrigger('morningStart').timeBased().at(triggerTimeByMorningTime).create();
         Utilities.sleep(sleepTime);
     }
     
     // 自由発言
-    const triggerTimeByFreedomWordingTime = getTriggerSetTime_(config.freedomWordingTime);
+    const triggerTimeByFreedomWordingTime = getTriggerSetTime(config.freedomWordingTime);
     if (triggerTimeByFreedomWordingTime) {
         ScriptApp.newTrigger('freedomWording').timeBased().at(triggerTimeByFreedomWordingTime).create();
         Utilities.sleep(sleepTime);
@@ -371,7 +371,7 @@ function createNextDayTemplate()
  */
 function createTemplateSheet(nextRowCount: number)
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     
@@ -420,9 +420,9 @@ function readSpreadsheetId()
 }
 
 /**
- * トリガーセット用の時刻を取得（nullであればトリガーはセットしない）（非公開扱い）
+ * トリガーセット用の時刻を取得（nullであればトリガーはセットしない）
  */
-function getTriggerSetTime_(time: string)
+function getTriggerSetTime(time: string)
 {
     // 無効な値はtriggerセット
     if (time === null || time === "null" || time === "") {
@@ -445,11 +445,11 @@ function getTriggerSetTime_(time: string)
 }
 
 /**
- * 作業予定エラー検知（非公開扱い）
+ * 作業予定エラー検知
  */
-function planError_(nextDayCount: number)
+function planError(nextDayCount: number)
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     
@@ -490,11 +490,11 @@ function planError_(nextDayCount: number)
 }
 
 /**
- * 作業報告（非公開扱い）
+ * 作業報告
  */
-function report_(needSuccessReport: boolean = true)
+function report(needSuccessReport: boolean = true)
 {
-    if (!isWorkDayToday_()) {
+    if (!isWorkDayToday()) {
         return;
     }
     
@@ -572,9 +572,9 @@ function report_(needSuccessReport: boolean = true)
 }
 
 /**
- * 営業日チェック（非公開扱い）
+ * 営業日チェック
  */
-function isWorkDayToday_()
+function isWorkDayToday()
 {
     // 設定値の取得
     const config = new Config();
