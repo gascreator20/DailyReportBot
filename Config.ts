@@ -43,6 +43,7 @@ export default class Config
     private readonly _freedomWordingTime;
     private readonly _morningRoomId;
     private readonly _freedomWordingRoomId;
+    private readonly _templateCreateCount;
     
     constructor()
     {
@@ -88,12 +89,18 @@ export default class Config
         this._reportRetryTime = keyValueSheetReader.find("設定", "キー名", "作業報告でエラーだった場合の再検知を何分後に行うか")["値"];
         this._endOfWorkReportTime = keyValueSheetReader.find("設定", "キー名", "終業報告トリガー発動時間")["値"];
         this._templateCreateTime = keyValueSheetReader.find("設定", "キー名", "次回分の日報を自動生成する時間")["値"];
+        this._templateCreateCount = keyValueSheetReader.find("設定", "キー名", "日報を自動生成する数")["値"];
         this._checkTodayPlanTime = keyValueSheetReader.find("設定", "キー名", "当日分の作業予定の記入が正しいかチェックする時間")["値"];
         this._checkNextPlanTime = keyValueSheetReader.find("設定", "キー名", "次回分の作業予定の記入が正しいかチェックする時間")["値"];
         this._requestNextPlanTime = keyValueSheetReader.find("設定", "キー名", "次回分の作業予定記入依頼の時間")["値"];
         this._reportCellTime = keyValueSheetReader.find("設定", "キー名", "指定セル報告を行う時間")["値"];
         this._morningTime = keyValueSheetReader.find("設定", "キー名", "朝会報告を行う時間")["値"];
         this._freedomWordingTime = keyValueSheetReader.find("設定", "キー名", "自由発言文の発言を行う時間")["値"];
+    }
+    
+    public get templateCreateCount()
+    {
+        return this._templateCreateCount;
     }
     
     public get morningRoomId()

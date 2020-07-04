@@ -245,6 +245,37 @@ function setReportTrigger()
 }
 
 /**
+ * このBotに関連しているトリガーを削除する
+ */
+function deleteTriggerForBot()
+{
+    const deleteTriggerNames = [
+        "createTemplateSheet",
+        "createNextDayTemplate",
+        "requestTodayPlanError",
+        "morningStart",
+        "requestReportWrite",
+        "reportCheck",
+        "reportErrorCheckOnly",
+        "requestNextDayPlan",
+        "requestNextDayPlanError",
+        "endOfWorkReport",
+        "targetCellReport",
+        "setReportTrigger",
+        "initializationTrigger",
+        "freedomWording"
+    ];
+    
+    const triggers = ScriptApp.getProjectTriggers();
+    for (const trigger of triggers) {
+        const triggerName: string = trigger.getHandlerFunction();
+        if (deleteTriggerNames.indexOf(triggerName) !== -1) {
+            ScriptApp.deleteTrigger(trigger);
+        }
+    }
+}
+
+/**
  * トリガーを初期化する
  */
 function initializationTrigger()
@@ -253,7 +284,7 @@ function initializationTrigger()
     const config = new Config();
     
     // まず最初にすべてのトリガーを削除
-    deleteTrigger();
+    deleteTriggerForBot();
     Utilities.sleep(sleepTime);
     
     // 毎日トリガーの初期化処理を行う（自分自身を再セットする）
@@ -363,7 +394,11 @@ function createTodayTemplate()
  */
 function createNextDayTemplate()
 {
-    createTemplateSheet(1);
+    const config = new Config();
+    const createCount: number = Number(config.templateCreateCount());
+    for (let i = 1; i <= createCount; i++) {
+        createTemplateSheet(i);
+    }
 }
 
 /**
