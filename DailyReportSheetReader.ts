@@ -52,7 +52,7 @@ export default class DailyReportSheetReader
                 }
                 
                 // 報告時刻の勤務がなければ報告対象には含めない
-                if (endTimeBySchedule < startTimeOffsetByEachTime) {
+                if (endTimeBySchedule <= startTimeOffsetByEachTime) {
                     console.log(member["名前"] + "は勤務終了しました");
                     return null;
                 }
