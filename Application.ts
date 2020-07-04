@@ -550,7 +550,7 @@ function report(needSuccessReport: boolean = true)
     const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", config.calendarType);
     const calendar = keyValueSheetReader.find("カレンダー", config.calendarSheetKey, nowTime, 0, config.spreadsheetIdMember);
     
-    // 予定が正確に入力されているかどうかの検証
+    // ひとつまえの時間帯で勤務中の人が対象
     const worker = new Worker();
     const members = worker.getWorkMember();
     
@@ -561,21 +561,23 @@ function report(needSuccessReport: boolean = true)
         if (resultBeforeTime === null) {
             continue;
         }
+        
+        // 現在の時間帯も勤務中の方が先走りですでに報告を記載していた場合はエラー対象とする
         const reportNowTime = spreadSheetReader.findWorkResultByNowTime(member, calendar);
-        if (reportNowTime === null) {
-            continue;
+        if (reportNowTime !== null) {
+            const resultReportNowTime = reportNowTime[config.workResultColumnNumber - 1];
+            if (resultReportNowTime !== "") {
+                // 報告の先記入は禁止
+                ngRuleMember.push(member);
+                error = true;
+            }
         }
         
         // 設定値で入力されている番号と配列の番号には1つ分ずれがある（配列は0始まり）ための考慮
-        const resultReportNowTime = reportNowTime[config.workResultColumnNumber - 1];
         const resultReportBeforeTime = resultBeforeTime[config.workResultColumnNumber - 1];
         if (resultReportBeforeTime === "") {
             // 報告が未記入の場合はエラー
             errorMember.push(member);
-            error = true;
-        } else if (resultReportNowTime !== "") {
-            // 報告の先記入は禁止
-            ngRuleMember.push(member);
             error = true;
         } else if (resultReportBeforeTime !== "") {
             // 報告が正しい
