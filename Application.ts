@@ -395,7 +395,7 @@ function createTodayTemplate()
 function createNextDayTemplate()
 {
     const config = new Config();
-    const createCount: number = Number(config.templateCreateCount());
+    const createCount: number = Number(config.templateCreateCount);
     for (let i = 1; i <= createCount; i++) {
         createTemplateSheet(i);
     }
